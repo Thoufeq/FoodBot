@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FoodBot – Culinary Intelligence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/static/style.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <div class="chatbot-wrapper">
+
+        <!-- Header -->
+        <div class="chatbot-header">
+            <div class="header-left">
+                <div class="bot-avatar">👨‍🍳</div>
+                <div>
+                    <h1>FoodBot</h1>
+                    <p class="status">
+                        <span class="status-dot"></span> Online
+                    </p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Chat -->
+        <div class="chat-container">
+            <div class="messages-wrapper"></div>
+        </div>
+
+        <!-- Upload Progress -->
+        <div class="upload-progress hidden" id="uploadProgress">
+            <div class="progress-text">Reading your cookbook…</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <button class="quick-btn">Breakfast Ideas</button>
+            <button class="quick-btn">Healthy Recipes</button>
+            <button class="quick-btn">Desserts</button>
+            <button class="quick-btn">Vegetarian</button>
+        </div>
+
+        <!-- Input -->
+        <div class="input-container">
+            <div class="input-wrapper">
+                <label class="upload-btn" title="Upload Cookbook PDF">
+                    📄
+                    <input type="file" id="pdfUpload" accept="application/pdf">
+                </label>
+
+                <input
+                    type="text"
+                    class="message-input"
+                    placeholder="Ask about recipes, ingredients, or upload a cookbook PDF…"
+                    autocomplete="off"
+                    spellcheck="false"
+                />
+
+                <button class="send-btn">➤</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+$(function () {
+
+    function scrollBottom() {
+        $(".chat-container").scrollTop($(".chat-container")[0].scrollHeight);
+    }
+
+    function toast(message, type="success") {
+        const el = $(`<div class="toast ${type}">${message}</div>`);
+        $("#toast-container").append(el);
+        setTimeout(() => el.fadeOut(300, () => el.remove()), 3000);
+    }
+
+    function appendUser(msg) {
+        $(".messages-wrapper").append(`
+            <div class="message user-message">
+                <div class="message-content">${msg}</div>
+                <div class="message-avatar">😊</div>
+            </div>
+        `);
+        scrollBottom();
+    }
+
+    function appendBot(msg) {
+        const html = marked.parse(msg);
+        $(".messages-wrapper").append(`
+            <div class="message bot-message">
+                <div class="message-avatar">👨‍🍳</div>
+                <div class="message-content">${html}</div>
+            </div>
+        `);
+        scrollBottom();
+    }
+
+    function showTyping() {
+        $(".messages-wrapper").append(`
+            <div class="typing-indicator" id="typing">
+                <div class="message-avatar">👨‍🍳</div>
+                <div class="typing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        `);
+        scrollBottom();
+    }
+
+    function hideTyping() {
+        $("#typing").remove();
+    }
+
+    function sendMessage(msg) {
+        if (!msg) return;
+
+        appendUser(msg);
+        $(".message-input").val("");
+        showTyping();
+
+        $.post("/get", {
+            msg: msg,
+            cookbook: $("#cookbookSelect").val()
+        })
+        .done(res => {
+            hideTyping();
+            appendBot(res);
+        })
+        .fail(() => {
+            hideTyping();
+            appendBot("⚠️ Something went wrong.");
+        });
+    }
+
+    $(".send-btn").on("click", () => {
+        sendMessage($(".message-input").val().trim());
+    });
+
+    $(".message-input").on("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            sendMessage($(this).val().trim());
+        }
+    });
+
+    $(".quick-btn").click(function () {
+        sendMessage($(this).text());
+    });
+
+    function loadCookbooks() {
+        $.get("/cookbooks", res => {
+            const select = $("#cookbookSelect");
+            select.empty();
+            select.append(`<option value="">All Cookbooks</option>`);
+            res.cookbooks.forEach(cb => {
+                select.append(`<option value="${cb}">${cb}</option>`);
+            });
+        });
+    }
+
+    loadCookbooks();
+
+    $("#pdfUpload").on("change", function () {
+        const file = this.files[0];
+        if (!file) return;
+
+        if (file.type !== "application/pdf") {
+            toast("Only PDF files are allowed 📄", "error");
+            return;
+        }
+
+        appendUser(`📄 Uploaded: ${file.name}`);
+        appendBot("👀 Reading your cookbook…");
+
+        $("#uploadProgress").removeClass("hidden");
+        $("#progressFill").css("width", "0%");
+        $(".progress-text").text("Uploading pages…");
+
+        const formData = new FormData();
+        formData.append("pdf", file);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/upload_pdf", true);
+
+        xhr.upload.onprogress = function (e) {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                $("#progressFill").css("width", percent + "%");
+
+                if (percent < 70) $(".progress-text").text("Extracting recipes…");
+                else if (percent < 90) $(".progress-text").text("Embedding knowledge…");
+                else $(".progress-text").text("Memorizing flavors…");
+            }
+        };
+
+        xhr.onload = function () {
+            $("#uploadProgress").addClass("hidden");
+            if (xhr.status === 200) {
+                toast("Cookbook indexed successfully ✅");
+                appendBot(xhr.responseText);
+                loadCookbooks();
+            } else {
+                toast("PDF upload failed ❌", "error");
+            }
+        };
+
+        xhr.send(formData);
+    });
+
+});
+</script>
+</body>
+</html>
