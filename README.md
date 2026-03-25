@@ -1,12 +1,12 @@
 ---
 
-# 🍳 FoodBot: AI-Powered PDF Cookbook Assistant
+#  FoodBot: AI-Powered PDF Cookbook Assistant
 
 FoodBot is a high-performance **Retrieval-Augmented Generation (RAG)** chatbot. It transforms static cookbook PDFs into a dynamic, searchable, and conversational knowledge base using Pinecone and Google Gemini.
 
 ---
 
-## 🌟 Key Features
+##  Key Features
 
 ### 📄 Dynamic Knowledge Management
 
@@ -14,20 +14,20 @@ FoodBot is a high-performance **Retrieval-Augmented Generation (RAG)** chatbot. 
 * **Semantic Search:** Uses HuggingFace embeddings to understand the *meaning* of your query, not just keywords.
 * **Multi-Doc Support:** Index multiple books and query them all at once.
 
-### 🧠 Intelligent Conversational AI
+###  Intelligent Conversational AI
 
 * **Context-Aware:** Gemini LLM generates responses based strictly on your uploaded recipes.
 * **Memory-Enabled:** Remembers previous questions in the session for follow-up instructions.
 * **Safety First:** Engineered to prioritize context over hallucinations.
 
-### 📊 Seamless User Experience
+###  Seamless User Experience
 
 * **Real-Time Feedback:** Live progress bars for PDF chunking and vector embedding.
 * **Modern UI:** Responsive design featuring streaming-style text animations and toast notifications.
 
 ---
 
-## 🏗 System Architecture
+##  System Architecture
 
 The following flow represents the lifecycle of a user query and document ingestion:
 
@@ -35,7 +35,7 @@ The following flow represents the lifecycle of a user query and document ingesti
 
 ---
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 | Component | Technology |
 | --- | --- |
@@ -48,7 +48,7 @@ The following flow represents the lifecycle of a user query and document ingesti
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```text
 project-root/
@@ -67,7 +67,7 @@ project-root/
 
 ---
 
-## ⚙️ Installation & Setup
+##  Installation & Setup
 
 ### 1. Environment Preparation
 
@@ -107,7 +107,7 @@ Visit `http://localhost:8080` in your browser.
 
 ---
 
-## 📖 How to Use
+## How to Use
 
 1. **Upload:** Click the PDF icon and select a cookbook. Wait for the **Indexing Progress Bar** to complete.
 2. **Ask:** Use natural language to find recipes or tips.
@@ -119,7 +119,7 @@ Visit `http://localhost:8080` in your browser.
 
 ---
 
-## 🔬 Deep Dive: Core Components
+## Deep Dive: Core Components
 
 * **`pdf_insertion.py`**: Handles the heavy lifting of splitting PDFs into manageable text chunks while preserving metadata for better retrieval.
 * **`store_index.py`**: Manages the batch uploading process to Pinecone to ensure stability during large document processing.
