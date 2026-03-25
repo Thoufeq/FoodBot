@@ -8,7 +8,7 @@ FoodBot is a high-performance **Retrieval-Augmented Generation (RAG)** chatbot. 
 
 ##  Key Features
 
-### 📄 Dynamic Knowledge Management
+### Dynamic Knowledge Management
 
 * **On-the-Fly Indexing:** Upload any cookbook PDF to instantly expand the bot's expertise.
 * **Semantic Search:** Uses HuggingFace embeddings to understand the *meaning* of your query, not just keywords.
